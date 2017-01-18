@@ -1,6 +1,7 @@
 
 package org.usfirst.frc.team1923.robot;
 
+import edu.wpi.cscore.AxisCamera;
 import edu.wpi.cscore.CvSink;
 import edu.wpi.cscore.CvSource;
 import edu.wpi.cscore.UsbCamera;
@@ -65,7 +66,7 @@ public class Robot extends IterativeRobot {
 		SmartDashboard.putData("Auto mode", chooser);
 		table=NetworkTable.getTable("GRIP/table");
 		Arduino();
-		//vision();	
+		vision();	
 		//log();
 		//network table code
 		
@@ -166,16 +167,17 @@ public class Robot extends IterativeRobot {
 
 	private void vision(){
 		new Thread(() -> {
-            UsbCamera camera = CameraServer.getInstance().startAutomaticCapture();
-            camera.setResolution(640, 480);
-            camera.setFPS(30);
-            camera.setExposureManual(20);
+            AxisCamera camera;// = CameraServer.getInstance().startAutomaticCapture();
+            camera=CameraServer.getInstance().addAxisCamera("Axis", "10.19.23.76");
+            //camera.setResolution(640, 480);
+            //camera.setFPS(30);
+            //camera.setExposureManual(20);
             //camera.setWhiteBalanceManual(0);
             //camera.setExposureManual(0);
             //camera.setExposureAuto();
             CvSource outputStream = CameraServer.getInstance().putVideo("HSL", 640, 480);
             
-            visionThread = new VisionThread(camera, new GripPipelineTwo(), pipeline -> {
+            visionThread = new VisionThread(camera, new GripPipeline(), pipeline -> {
             
             //if(visionStart){
 //                if (!pipeline.filterContoursOutput().isEmpty()) {
@@ -188,14 +190,14 @@ public class Robot extends IterativeRobot {
                 outputStream.putFrame(pipeline.hslThresholdOutput());
            //}
            // else{
-            	CvSink cvSink = CameraServer.getInstance().getVideo();
-            	Mat source = new Mat();
-            	cvSink.grabFrame(source);
-            	ArrayList<MatOfPoint> points = new ArrayList<MatOfPoint>();
+            	//CvSink cvSink = CameraServer.getInstance().getVideo();
+            	//Mat source = new Mat();
+            	//cvSink.grabFrame(source);
+            	//ArrayList<MatOfPoint> points = new ArrayList<MatOfPoint>();
             	
             	//Imgproc.boundingRect(points);
             	
-            	outputStream.putFrame(source);
+            	//outputStream.putFrame(source);
            // }
            }
             
