@@ -1,6 +1,7 @@
 
 package org.usfirst.frc.team1923.robot;
 
+import edu.wpi.cscore.CvSink;
 import edu.wpi.cscore.CvSource;
 import edu.wpi.cscore.UsbCamera;
 import edu.wpi.first.wpilibj.CameraServer;
@@ -11,9 +12,16 @@ import edu.wpi.first.wpilibj.I2C.Port;
 import edu.wpi.first.wpilibj.command.Command;
 import edu.wpi.first.wpilibj.command.Scheduler;
 import edu.wpi.first.wpilibj.livewindow.LiveWindow;
+import edu.wpi.first.wpilibj.networktables.NetworkTable;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.vision.VisionThread;
+
+import java.util.ArrayList;
+
+import org.opencv.core.Mat;
+import org.opencv.core.MatOfPoint;
+import org.opencv.imgproc.Imgproc;
 import org.usfirst.frc.team1923.robot.subsystems.*;
 
 
@@ -31,7 +39,12 @@ public class Robot extends IterativeRobot {
 	private VisionThread visionThread;
 	public static double centerX = 0.0;
 	public RobotDrive drive;
+	
+	public static double[] centerx;
+	public static double[] defaultV = new double[0];
 
+	NetworkTable table;
+	
 	public static final Object imgLock = new Object();
 
 	// Arduino
@@ -50,9 +63,22 @@ public class Robot extends IterativeRobot {
 		//chooser.addDefault("Default Auto", new ExampleCommand());
 		// chooser.addObject("My Auto", new MyAutoCommand());
 		SmartDashboard.putData("Auto mode", chooser);
+		table=NetworkTable.getTable("GRIP/table");
 		Arduino();
-		vision();	
+		//vision();	
+		//log();
+		//network table code
 		
+	}
+
+	private void log() {
+		// TODO Auto-generated method stub
+		table=NetworkTable.getTable("GRIP/table");
+		centerx=table.getNumberArray("centerX", defaultV);
+		for(double center:centerx){
+			System.out.print(center + "\t");
+		}
+		System.out.println();
 	}
 
 	/**
@@ -89,7 +115,7 @@ public class Robot extends IterativeRobot {
 		 * String autoSelected = SmartDashboard.getString("Auto Selector",
 		 * "Default"); switch(autoSelected) { case "My Auto": autonomousCommand
 		 * = new MyAutoCommand(); break; case "Default Auto": default:
-		 * autonomousCommand = new ExampleCommand(); break; }
+		 * autonomousCommand  new ExampleCommand(); break; }
 		 */
 
 		// schedule the autonomous command (example)
@@ -121,6 +147,7 @@ public class Robot extends IterativeRobot {
 	@Override
 	public void teleopPeriodic() {
 		Scheduler.getInstance().run();
+		log();
 	}
 
 	/**
@@ -153,17 +180,22 @@ public class Robot extends IterativeRobot {
             //if(visionStart){
 //                if (!pipeline.filterContoursOutput().isEmpty()) {
 //                    Rect r = Imgproc.boundingRect(pipeline.filterContoursOutput().get(0));
-//                    synchronized (imgLock) {
-//                        centerX = r.x + (r.width / 2);
-//                    }
+//                    //synchronized (imgLock) {
+//                    //    centerX = r.x + (r.width / 2);
+//                    //}
 //                }
+            	
                 outputStream.putFrame(pipeline.hslThresholdOutput());
            //}
            // else{
-            	//CvSink cvSink = CameraServer.getInstance().getVideo();
-            	//Mat source = new Mat();
-            	//cvSink.grabFrame(source);
-            	//outputStream.putFrame(source);
+            	CvSink cvSink = CameraServer.getInstance().getVideo();
+            	Mat source = new Mat();
+            	cvSink.grabFrame(source);
+            	ArrayList<MatOfPoint> points = new ArrayList<MatOfPoint>();
+            	
+            	//Imgproc.boundingRect(points);
+            	
+            	outputStream.putFrame(source);
            // }
            }
             
